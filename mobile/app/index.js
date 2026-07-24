@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import CategoryList from "../components/CategoryList";
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
 
@@ -18,6 +19,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Header />
       <SearchBar />
+      <CategoryList />
 
 <View
   style={{
