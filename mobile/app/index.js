@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   View,
   Text,
@@ -15,11 +16,20 @@ import DishCard from "../components/DishCard";
 import { plats } from "../data/plats";
 
 export default function HomeScreen() {
+  const [search, setSearch] = useState("");
+
+  const filteredPlats = plats.filter((plat) =>
+    plat.nom.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       <Header />
 
-      <SearchBar />
+      <SearchBar
+        value={search}
+        onChangeText={setSearch}
+      />
 
       <CategoryList />
 
@@ -30,7 +40,7 @@ export default function HomeScreen() {
       </View>
 
       <FlatList
-        data={plats}
+        data={filteredPlats}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <DishCard plat={item} />}
         showsVerticalScrollIndicator={false}
@@ -65,6 +75,7 @@ const styles = StyleSheet.create({
 
   syncText: {
     color: "#666",
+    fontSize: 14,
   },
 
   fab: {
