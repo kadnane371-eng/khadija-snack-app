@@ -7,10 +7,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import CategoryList from "../components/CategoryList";
+
 import Header from "../components/Header";
 import SearchBar from "../components/SearchBar";
-
+import CategoryList from "../components/CategoryList";
 import DishCard from "../components/DishCard";
 import { plats } from "../data/plats";
 
@@ -18,21 +18,16 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Header />
+
       <SearchBar />
+
       <CategoryList />
 
-<View
-  style={{
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
-  }}
->
-  <Text style={{ color: "#666" }}>
-    Dernière synchronisation : il y a 2 min
-  </Text>
-</View>
+      <View style={styles.syncCard}>
+        <Text style={styles.syncText}>
+          Dernière synchronisation : il y a 2 min
+        </Text>
+      </View>
 
       <FlatList
         data={plats}
@@ -60,17 +55,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#222",
+  syncCard: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 20,
+    elevation: 2,
   },
 
-  sync: {
-    fontSize: 14,
-    color: "#777",
-    marginBottom: 20,
+  syncText: {
+    color: "#666",
   },
 
   fab: {
