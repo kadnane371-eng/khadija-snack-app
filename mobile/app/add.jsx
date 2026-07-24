@@ -1,5 +1,13 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Switch } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+} from "react-native";
 import { useState } from "react";
+import { router } from "expo-router";
 
 export default function AddScreen() {
   const [nom, setNom] = useState("");
@@ -46,7 +54,10 @@ export default function AddScreen() {
         <Text style={styles.saveText}>Enregistrer</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cancelButton}>
+      <TouchableOpacity
+        style={styles.cancelButton}
+        onPress={() => router.back()}
+      >
         <Text style={styles.cancelText}>Annuler</Text>
       </TouchableOpacity>
     </View>
