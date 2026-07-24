@@ -3,10 +3,10 @@ import {
   Text,
   StyleSheet,
   Image,
-  Switch,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 export default function DishCard({ plat }) {
   return (
@@ -21,12 +21,19 @@ export default function DishCard({ plat }) {
         <Text style={styles.price}>{plat.prix} DH</Text>
 
         <View style={styles.footer}>
+          <Text style={styles.badge}>
+            {plat.disponible ? "✅ Disponible" : "❌ Indisponible"}
+          </Text>
+
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => router.push("/edit")}
+            >
               <Ionicons
                 name="create-outline"
                 size={22}
-                color="#FF8C00"
+                color="#2196F3"
               />
             </TouchableOpacity>
 
@@ -37,21 +44,6 @@ export default function DishCard({ plat }) {
                 color="#E53935"
               />
             </TouchableOpacity>
-          </View>
-
-          <View style={styles.rightSide}>
-            <Switch value={plat.disponible} />
-
-            <Text
-              style={[
-                styles.badge,
-                {
-                  color: plat.disponible ? "#16A34A" : "#DC2626",
-                },
-              ]}
-            >
-              {plat.disponible ? "Disponible" : "Indisponible"}
-            </Text>
           </View>
         </View>
       </View>
@@ -80,11 +72,13 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: "bold",
+    color: "#222",
   },
 
   category: {
     color: "#666",
     marginTop: 5,
+    fontSize: 14,
   },
 
   price: {
@@ -101,21 +95,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
+  badge: {
+    fontWeight: "bold",
+    color: "#2E7D32",
+  },
+
   actions: {
     flexDirection: "row",
   },
 
   iconButton: {
-    marginRight: 15,
-  },
-
-  rightSide: {
-    alignItems: "center",
-  },
-
-  badge: {
-    marginTop: 5,
-    fontWeight: "bold",
-    fontSize: 12,
+    marginLeft: 12,
   },
 });
