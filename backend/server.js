@@ -7,19 +7,34 @@ require("dotenv").config();
 const sequelize = require("./config/database");
 const platRoutes = require("./routes/platRoutes");
 require("./models");
+const fallbackPlats = require("./data/fallbackPlats");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || "0.0.0.0";
 
 app.use(cors());
 app.use(express.json());
-app.use("/docs", apiReference({ spec: { content: openApiSpec } }));
+app.use("/docs", apiReference({ content: openApiSpec }));
 app.use("/api/plats", platRoutes);
 app.get("/", (req, res) => res.send("Backend is running 🚀"));
 
-sequelize.sync().then(() => {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}).catch((error) => {
-  console.error(error);
-  process.exit(1);
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    await sequelize.sync();
+    console.log("Database connection successful");
+  } catch (error) {
+    console.warn("Database unavailable, using fallback data:", error.message);
+  }
+
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
+  });
+};
+
+startServer();
+
+app.get("/api/plats", (req, res) => {
+  res.status(200).json(fallbackPlats);
 });

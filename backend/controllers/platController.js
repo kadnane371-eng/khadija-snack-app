@@ -1,4 +1,5 @@
 const { Plat } = require("../models");
+const fallbackPlats = require("../data/fallbackPlats");
 
 const validatePlat = (body) => {
   if (!body || typeof body !== "object") return { error: "Données invalides" };
@@ -13,10 +14,10 @@ const validatePlat = (body) => {
 
 const getAllPlats = async (req, res) => {
   try {
-    const plats = await Plat.findAll({ order: [["createdAt", "DESC"]] });
-    res.status(200).json(plats);
+    const plats = await Plat.findAll({ order: [["id", "DESC"]] });
+    res.status(200).json(plats.length > 0 ? plats : fallbackPlats);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(200).json(fallbackPlats);
   }
 };
 

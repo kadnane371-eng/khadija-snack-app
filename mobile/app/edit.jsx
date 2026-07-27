@@ -6,24 +6,80 @@ import {
   TouchableOpacity,
   Switch,
 } from "react-native";
-import { useState } from "react";
-import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getPlat, updatePlat } from "../services/platService";
 
 export default function EditScreen() {
-  const [nom, setNom] = useState("Burger Maison");
-  const [prix, setPrix] = useState("45");
-  const [categorie, setCategorie] = useState("Burger");
+  const params = useLocalSearchParams();
+  const platId = params.platId?.toString();
+  const [nom, setNom] = useState("");
+  const [prix, setPrix] = useState("");
+  const [categorie, setCategorie] = useState("");
   const [disponible, setDisponible] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: plat, isLoading } = useQuery({
+    queryKey: ["plat", platId],
+    queryFn: async () => {
+      const response = await getPlat(platId);
+      return response.data;
+    },
+    enabled: Boolean(platId),
+  });
+
+  useEffect(() => {
+    if (plat) {
+      setNom(plat.nom || "");
+      setPrix(String(plat.prix ?? ""));
+      setCategorie(plat.categorie || "");
+      setDisponible(Boolean(plat.disponible));
+    }
+  }, [plat]);
+
+  const updatePlatMutation = useMutation({
+    mutationFn: async (payload) => updatePlat(platId, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["plats"] });
+      await queryClient.invalidateQueries({ queryKey: ["plat", platId] });
+      router.back();
+    },
+    onError: (error) => {
+      setErrorMessage(error?.response?.data?.message || "Échec de la mise à jour");
+    },
+  });
+
+  const handleSave = () => {
+    setErrorMessage("");
+
+    if (!platId || !nom.trim() || !categorie.trim() || !prix) {
+      setErrorMessage("Veuillez remplir tous les champs");
+      return;
+    }
+
+    updatePlatMutation.mutate({
+      nom: nom.trim(),
+      prix: Number(prix),
+      categorie: categorie.trim(),
+      disponible,
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text>Chargement...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Modifier un plat</Text>
 
-      <TextInput
-        style={styles.input}
-        value={nom}
-        onChangeText={setNom}
-      />
+      <TextInput style={styles.input} value={nom} onChangeText={setNom} />
 
       <TextInput
         style={styles.input}
@@ -32,29 +88,27 @@ export default function EditScreen() {
         onChangeText={setPrix}
       />
 
-      <TextInput
-        style={styles.input}
-        value={categorie}
-        onChangeText={setCategorie}
-      />
+      <TextInput style={styles.input} value={categorie} onChangeText={setCategorie} />
 
       <View style={styles.switchContainer}>
         <Text>Disponible</Text>
 
-        <Switch
-          value={disponible}
-          onValueChange={setDisponible}
-        />
+        <Switch value={disponible} onValueChange={setDisponible} />
       </View>
 
-      <TouchableOpacity style={styles.saveButton}>
-        <Text style={styles.saveText}>Mettre à jour</Text>
-      </TouchableOpacity>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
       <TouchableOpacity
-        style={styles.cancelButton}
-        onPress={() => router.back()}
+        style={styles.saveButton}
+        onPress={handleSave}
+        disabled={updatePlatMutation.isPending}
       >
+        <Text style={styles.saveText}>
+          {updatePlatMutation.isPending ? "Mise à jour..." : "Mettre à jour"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
         <Text style={styles.cancelText}>Annuler</Text>
       </TouchableOpacity>
     </View>
@@ -87,7 +141,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+
+  errorText: {
+    color: "#d32f2f",
+    marginBottom: 12,
   },
 
   saveButton: {

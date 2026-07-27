@@ -7,11 +7,22 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deletePlat } from "../services/platService";
 
 export default function DishCard({ plat }) {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => deletePlat(plat.id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["plats"] });
+    },
+  });
+
   return (
     <View style={styles.card}>
-      <Image source={{ uri: plat.image }} style={styles.image} />
+      {plat.image ? <Image source={{ uri: plat.image }} style={styles.image} /> : null}
 
       <View style={styles.info}>
         <Text style={styles.name}>{plat.nom}</Text>
@@ -28,21 +39,19 @@ export default function DishCard({ plat }) {
           <View style={styles.actions}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => router.push("/edit")}
+              onPress={() =>
+                router.push({ pathname: "/edit", params: { platId: plat.id } })
+              }
             >
-              <Ionicons
-                name="create-outline"
-                size={22}
-                color="#2196F3"
-              />
+              <Ionicons name="create-outline" size={22} color="#2196F3" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconButton}>
-              <Ionicons
-                name="trash-outline"
-                size={22}
-                color="#E53935"
-              />
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending}
+            >
+              <Ionicons name="trash-outline" size={22} color="#E53935" />
             </TouchableOpacity>
           </View>
         </View>

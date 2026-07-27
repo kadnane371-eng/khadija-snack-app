@@ -8,12 +8,43 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createPlat } from "../services/platService";
 
 export default function AddScreen() {
   const [nom, setNom] = useState("");
   const [prix, setPrix] = useState("");
   const [categorie, setCategorie] = useState("");
   const [disponible, setDisponible] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const queryClient = useQueryClient();
+
+  const createPlatMutation = useMutation({
+    mutationFn: async (payload) => createPlat(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["plats"] });
+      router.back();
+    },
+    onError: (error) => {
+      setErrorMessage(error?.response?.data?.message || "Échec de l’enregistrement");
+    },
+  });
+
+  const handleSave = () => {
+    setErrorMessage("");
+
+    if (!nom.trim() || !categorie.trim() || !prix) {
+      setErrorMessage("Veuillez remplir tous les champs");
+      return;
+    }
+
+    createPlatMutation.mutate({
+      nom: nom.trim(),
+      prix: Number(prix),
+      categorie: categorie.trim(),
+      disponible,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -44,20 +75,22 @@ export default function AddScreen() {
       <View style={styles.switchContainer}>
         <Text>Disponible</Text>
 
-        <Switch
-          value={disponible}
-          onValueChange={setDisponible}
-        />
+        <Switch value={disponible} onValueChange={setDisponible} />
       </View>
 
-      <TouchableOpacity style={styles.saveButton}>
-        <Text style={styles.saveText}>Enregistrer</Text>
-      </TouchableOpacity>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
       <TouchableOpacity
-        style={styles.cancelButton}
-        onPress={() => router.back()}
+        style={styles.saveButton}
+        onPress={handleSave}
+        disabled={createPlatMutation.isPending}
       >
+        <Text style={styles.saveText}>
+          {createPlatMutation.isPending ? "Enregistrement..." : "Enregistrer"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
         <Text style={styles.cancelText}>Annuler</Text>
       </TouchableOpacity>
     </View>
@@ -90,7 +123,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+
+  errorText: {
+    color: "#d32f2f",
+    marginBottom: 12,
   },
 
   saveButton: {
